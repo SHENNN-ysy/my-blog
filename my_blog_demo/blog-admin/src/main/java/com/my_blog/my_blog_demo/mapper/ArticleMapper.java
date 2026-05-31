@@ -1,0 +1,9 @@
+package com.my_blog.my_blog_demo.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.my_blog.model.entity.Article;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface ArticleMapper extends BaseMapper<Article> {
+}

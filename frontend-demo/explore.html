@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>开始探索 | 个人学习实验室</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0D1117; --bg-alt: #111827; --surface: #161B27; --surface-2: #1C2333;
+      --primary: #00D9B5; --glow: rgba(0,217,181,0.15); --accent: #818CF8;
+      --text-hi: #F1F5F9; --text: #CBD5E1; --text-mid: #94A3B8; --muted: #475569;
+      --border: #1E293B; --border-hi: #2D3F56; --radius: 14px; --radius-sm: 8px;
+      --err: #F87171; --err-bg: rgba(248,113,113,0.08); --err-border: rgba(248,113,113,0.2);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Outfit', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.8; overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; }
+
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,217,181,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(0,217,181,0.025) 1px, transparent 1px); background-size: 48px 48px; pointer-events: none; z-index: 0; }
+    body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E"); pointer-events: none; z-index: 0; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0 56px; height: 66px; display: flex; align-items: center; justify-content: space-between; background: rgba(13,17,23,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(30,41,59,0.6); }
+    .nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.15rem; color: var(--text-hi); letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon { width: 34px; height: 34px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0D1117; font-size: 0.7rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; box-shadow: 0 0 16px var(--glow); }
+    .nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--text-mid); font-size: 0.875rem; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--primary); }
+    .nav-cta { background: var(--primary) !important; color: #0D1117 !important; padding: 8px 20px; border-radius: 4px; font-weight: 700 !important; font-size: 0.875rem !important; transition: all 0.22s !important; box-shadow: 0 0 18px var(--glow); }
+    .nav-cta:hover { background: #00F5CC !important; box-shadow: 0 0 28px rgba(0,217,181,0.3) !important; transform: translateY(-1px); }
+
+    /* MAIN LAYOUT */
+    .login-page { flex: 1; display: flex; align-items: center; justify-content: center; padding: 100px 24px 60px; position: relative; z-index: 1; }
+
+    .login-container { width: 100%; max-width: 900px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 40px 100px rgba(0,0,0,0.5); background: var(--surface); }
+
+    /* Left brand panel */
+    .brand-panel { background: linear-gradient(160deg, #0D1117 0%, #1C2333 100%); padding: 56px 44px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+    .brand-panel::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, rgba(0,217,181,0.12) 0%, transparent 60%), radial-gradient(circle at 70% 70%, rgba(129,140,248,0.08) 0%, transparent 60%); }
+    .brand-content { position: relative; z-index: 1; }
+    .brand-icon { width: 60px; height: 60px; background: var(--primary); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: #0D1117; font-family: 'JetBrains Mono', monospace; font-weight: 700; margin-bottom: 28px; box-shadow: 0 0 30px var(--glow); }
+    .brand-title { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text-hi); letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 16px; }
+    .brand-desc { font-size: 0.88rem; color: var(--text-mid); line-height: 1.8; margin-bottom: 32px; }
+    .brand-features { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .brand-features li { display: flex; align-items: center; gap: 10px; font-size: 0.83rem; color: var(--text-mid); }
+    .brand-check { width: 20px; height: 20px; background: rgba(0,217,181,0.12); border: 1px solid rgba(0,217,181,0.25); border-radius: 5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--primary); font-size: 0.7rem; }
+
+    /* Decorative grid on brand panel */
+    .brand-grid { position: absolute; bottom: -40px; right: -40px; width: 200px; height: 200px; background-image: linear-gradient(rgba(0,217,181,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,217,181,0.06) 1px, transparent 1px); background-size: 20px 20px; transform: rotate(-15deg); pointer-events: none; }
+
+    /* Right form panel */
+    .form-panel { padding: 56px 44px; display: flex; flex-direction: column; justify-content: center; }
+    .form-heading { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: var(--text-hi); letter-spacing: -0.02em; margin-bottom: 6px; }
+    .form-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 36px; }
+    .form-sub a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .form-sub a:hover { text-decoration: underline; }
+
+    /* Form fields */
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 500; color: var(--text-mid); letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase; }
+    .form-input-wrap { position: relative; }
+    .form-input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; pointer-events: none; transition: color 0.2s; }
+    .form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px 12px 42px; font-family: 'Outfit', sans-serif; font-size: 0.9rem; color: var(--text-hi); transition: all 0.25s; outline: none; }
+    .form-input::placeholder { color: var(--muted); }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--glow); }
+    .form-input:focus ~ .form-input-icon,
+    .form-input:focus + .form-input-icon { color: var(--primary); }
+    .form-input.has-error { border-color: var(--err); box-shadow: 0 0 0 3px var(--err-bg); }
+
+    /* Password toggle */
+    .pass-toggle { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem; padding: 4px; transition: color 0.2s; }
+    .pass-toggle:hover { color: var(--text-mid); }
+
+    /* Error message */
+    .form-error { display: none; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--err); margin-top: 8px; padding: 10px 14px; background: var(--err-bg); border: 1px solid var(--err-border); border-radius: var(--radius-sm); }
+    .form-error.show { display: flex; }
+
+    /* Remember + forgot */
+    .form-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .remember-me { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .remember-me input[type="checkbox"] { display: none; }
+    .remember-check { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+    .remember-me input:checked + .remember-check { background: var(--primary); border-color: var(--primary); color: #0D1117; }
+    .remember-me input:checked + .remember-check::after { content: '✓'; font-size: 0.65rem; font-weight: 700; }
+    .remember-label { font-size: 0.82rem; color: var(--text-mid); }
+    .forgot-link { font-size: 0.82rem; color: var(--primary); text-decoration: none; font-weight: 500; }
+    .forgot-link:hover { text-decoration: underline; }
+
+    /* Submit button */
+    .btn-submit { width: 100%; background: var(--primary); color: #0D1117; padding: 13px; border: none; border-radius: var(--radius-sm); font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.25s; box-shadow: 0 0 20px var(--glow); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-submit:hover { background: #00F5CC; box-shadow: 0 0 32px rgba(0,217,181,0.35); transform: translateY(-1px); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit.loading { opacity: 0.75; pointer-events: none; }
+    .btn-submit .spinner { width: 16px; height: 16px; border: 2px solid rgba(13,17,23,0.3); border-top-color: #0D1117; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+    .btn-submit.loading .spinner { display: block; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Divider */
+    .form-divider { display: flex; align-items: center; gap: 16px; margin: 24px 0; }
+    .form-divider::before, .form-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .form-divider span { font-size: 0.75rem; color: var(--muted); white-space: nowrap; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.03em; }
+
+    /* Social login */
+    .social-btns { display: flex; gap: 12px; }
+    .social-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text-mid); font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.25s; text-decoration: none; }
+    .social-btn:hover { border-color: rgba(0,217,181,0.25); color: var(--primary); background: rgba(0,217,181,0.04); }
+
+    /* Tab switcher (login / register) */
+    .tab-switch { display: flex; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 32px; gap: 3px; }
+    .tab-btn { flex: 1; padding: 8px; text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--muted); border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none; background: none; font-family: 'Outfit', sans-serif; }
+    .tab-btn.active { background: var(--surface-2); color: var(--text-hi); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* Register fields (hidden by default) */
+    .register-fields { display: none; }
+
+    /* Footer */
+    footer { padding: 24px 56px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); position: relative; z-index: 1; }
+    .footer-left { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; }
+    .footer-tag { background: rgba(0,217,181,0.08); color: var(--primary); padding: 3px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; border: 1px solid rgba(0,217,181,0.15); }
+    .footer-right { font-size: 0.8rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* Responsive */
+    @media (max-width: 720px) {
+      nav { padding: 0 24px; } .nav-links { display: none; }
+      .login-container { grid-template-columns: 1fr; max-width: 440px; }
+      .brand-panel { padding: 40px 32px; min-height: 200px; }
+      .form-panel { padding: 40px 32px; }
+      footer { padding: 20px 24px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo"><div class="logo-icon">&lt;/&gt;</div>个人学习实验室</a>
+    <ul class="nav-links">
+      <li><a href="index.html">首页</a></li>
+      <li><a href="experiments.html">实验记录</a></li>
+      <li><a href="notes.html">技术笔记</a></li>
+      <li><a href="about.html">关于</a></li>
+      <li><a href="explore.html" class="nav-cta active">开始探索</a></li>
+    </ul>
+  </nav>
+
+  <div class="login-page">
+    <div class="login-container">
+
+      <!-- Left: Brand -->
+      <div class="brand-panel">
+        <div class="brand-grid"></div>
+        <div class="brand-content">
+          <div class="brand-icon">&lt;/&gt;</div>
+          <div class="brand-title">开启你的<br>技术探索之旅</div>
+          <p class="brand-desc">加入个人学习实验室，与志同道合的伙伴一起探索技术的边界。每一行代码，都是成长的印记。</p>
+          <ul class="brand-features">
+            <li><span class="brand-check">✓</span>访问所有原创技术文章</li>
+            <li><span class="brand-check">✓</span>追踪实验项目进度</li>
+            <li><span class="brand-check">✓</span>获取思维模型与笔记</li>
+            <li><span class="brand-check">✓</span>参与社区讨论交流</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Right: Form -->
+      <div class="form-panel">
+        <div class="tab-switch">
+          <button class="tab-btn active" id="tabLogin">登录</button>
+          <button class="tab-btn" id="tabRegister">注册</button>
+        </div>
+
+        <h2 class="form-heading" id="formTitle">欢迎回来</h2>
+        <p class="form-sub" id="formSub">登录后开始你的技术探索之旅</p>
+
+        <form id="loginForm" onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label">账号</label>
+            <div class="form-input-wrap">
+              <input type="text" class="form-input" id="account" placeholder="输入账号" autocomplete="username" />
+              <span class="form-input-icon">⊙</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">密码</label>
+            <div class="form-input-wrap">
+              <input type="password" class="form-input" id="password" placeholder="••••••••" autocomplete="current-password" />
+              <span class="form-input-icon">🔒</span>
+              <button type="button" class="pass-toggle" id="passToggle" aria-label="显示密码">👁</button>
+            </div>
+          </div>
+
+          <div class="form-error" id="formError">
+            <span>⚠</span>账号或密码错误，请重试
+          </div>
+
+          <div class="register-fields" id="registerFields">
+            <div class="form-group">
+              <label class="form-label">确认密码</label>
+              <div class="form-input-wrap">
+                <input type="password" class="form-input" id="passwordConfirm" placeholder="••••••••" autocomplete="new-password" />
+                <span class="form-input-icon">🔒</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="remember-me">
+              <input type="checkbox" checked />
+              <span class="remember-check"></span>
+              <span class="remember-label">记住我</span>
+            </label>
+            <a href="#" class="forgot-link">忘记密码？</a>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span class="spinner"></span>
+            <span id="submitText">登录</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-left"><span class="footer-tag">v2.0</span><a href="index.html" style="color:var(--muted);text-decoration:none;">个人学习实验室</a> · My Learning Lab</div>
+    <div class="footer-right">Built with curiosity &amp; code</div>
+  </footer>
+
+  <script>
+    // Password toggle
+    const passInput = document.getElementById('password');
+    const passToggle = document.getElementById('passToggle');
+    let showPass = false;
+    passToggle.addEventListener('click', () => {
+      showPass = !showPass;
+      passInput.type = showPass ? 'text' : 'password';
+      passToggle.textContent = showPass ? '🙈' : '👁';
+    });
+
+    // Tab switch
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const formTitle = document.getElementById('formTitle');
+    const formSub = document.getElementById('formSub');
+    const submitText = document.getElementById('submitText');
+    const registerFields = document.getElementById('registerFields');
+    let isRegister = false;
+
+    function switchTab(register) {
+      isRegister = register;
+      tabLogin.classList.toggle('active', !register);
+      tabRegister.classList.toggle('active', register);
+      formTitle.textContent = register ? '创建账号' : '欢迎回来';
+      formSub.innerHTML = register
+        ? '注册后解锁全部功能'
+        : '登录后开始你的技术探索之旅 <a href="index.html">← 返回首页</a>';
+      submitText.textContent = register ? '注册' : '登录';
+      registerFields.style.display = register ? 'block' : 'none';
+      document.getElementById('formError').classList.remove('show');
+    }
+
+    tabLogin.addEventListener('click', () => switchTab(false));
+    tabRegister.addEventListener('click', () => switchTab(true));
+
+    // Submit
+    const form = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const errorEl = document.getElementById('formError');
+
+    submitBtn.addEventListener('click', () => {
+      const account = document.getElementById('account').value;
+      const pass = document.getElementById('password').value;
+
+      if (!account || !pass) {
+        errorEl.querySelector('span:last-child').textContent = '请填写账号和密码';
+        errorEl.classList.add('show');
+        return;
+      }
+
+      if (isRegister) {
+        const confirm = document.getElementById('passwordConfirm').value;
+        if (pass !== confirm) {
+          errorEl.querySelector('span:last-child').textContent = '两次密码不一致';
+          errorEl.classList.add('show');
+          return;
+        }
+      }
+
+      errorEl.classList.remove('show');
+      submitBtn.classList.add('loading');
+
+      // Simulate API call
+      setTimeout(() => {
+        submitBtn.classList.remove('loading');
+        errorEl.querySelector('span:last-child').textContent = '邮箱或密码错误，请重试';
+        errorEl.classList.add('show');
+      }, 1500);
+    });
+  </script>
+</body>
+</html>
