@@ -1,4 +1,4 @@
-# 个人博客 (My Blog)
+# 个人学习实验室 (MyStudyLab)  -尚未完成，开发中
 
 前后端分离博客项目，前端基于 React + Vite + TypeScript，后端基于 Spring Boot 3 + MyBatis-Plus，支持 Docker 一键部署与 PLG 监控栈。
 
