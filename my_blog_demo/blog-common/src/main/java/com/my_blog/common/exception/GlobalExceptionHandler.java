@@ -4,6 +4,7 @@ import com.my_blog.common.enums.ErrorCode;
 import com.my_blog.model.vo.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -16,9 +17,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BizException.class)
-    public Result<Void> handleBizException(BizException e) {
+    public ResponseEntity<Result<Void>> handleBizException(BizException e) {
         log.warn("Business exception: code={}, message={}", e.getCode(), e.getMessage());
-        return Result.error(e.getCode(), e.getMessage());
+        HttpStatus status = mapCodeToStatus(e.getCode());
+        return ResponseEntity.status(status).body(Result.error(e.getCode(), e.getMessage()));
+    }
+
+    private HttpStatus mapCodeToStatus(int code) {
+        return switch (code) {
+            case 400 -> HttpStatus.BAD_REQUEST;
+            case 401 -> HttpStatus.UNAUTHORIZED;
+            case 403 -> HttpStatus.FORBIDDEN;
+            case 404 -> HttpStatus.NOT_FOUND;
+            case 409 -> HttpStatus.CONFLICT;
+            case 500 -> HttpStatus.INTERNAL_SERVER_ERROR;
+            default -> HttpStatus.OK;
+        };
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

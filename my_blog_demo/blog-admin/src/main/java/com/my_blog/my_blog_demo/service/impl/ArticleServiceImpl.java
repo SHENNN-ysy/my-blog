@@ -15,6 +15,7 @@ import com.my_blog.my_blog_demo.mapper.CategoryMapper;
 import com.my_blog.my_blog_demo.mapper.UserMapper;
 import com.my_blog.my_blog_demo.service.ArticleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -22,6 +23,7 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ArticleServiceImpl implements ArticleService {
@@ -52,13 +54,14 @@ public class ArticleServiceImpl implements ArticleService {
         if (categoryId != null) {
             qw.eq(Article::getCategoryId, categoryId);
         }
-        qw.orderByDesc(Article::getCreateTime);
+        qw.orderByDesc(Article::getCreatedAt);
         Page<Article> result = articleMapper.selectPage(pg, qw);
 
         List<ArticleVO> list = result.getRecords().stream()
                 .map(this::toVO)
                 .collect(Collectors.toList());
 
+        log.info("查询文章列表成功，共 {} 条", result.getTotal());
         return PageResult.of(list, result.getTotal(), result.getCurrent(), result.getSize());
     }
 
@@ -68,6 +71,7 @@ public class ArticleServiceImpl implements ArticleService {
         if (article == null) {
             throw new BizException(ErrorCode.ARTICLE_NOT_FOUND);
         }
+        log.info("获取文章详情成功，articleId={}，title={}", id, article.getTitle());
         return toVO(article);
     }
 
@@ -80,6 +84,7 @@ public class ArticleServiceImpl implements ArticleService {
         if (rows == 0) {
             throw new BizException(ErrorCode.ARTICLE_NOT_FOUND);
         }
+        log.info("递增文章浏览量成功，articleId={}", id);
         return toVO(articleMapper.selectById(id));
     }
 
@@ -99,8 +104,8 @@ public class ArticleServiceImpl implements ArticleService {
         vo.setCommentCount(article.getCommentCount());
         vo.setStatus(article.getStatus());
         vo.setPublishedAt(article.getPublishedAt());
-        vo.setCreateTime(article.getCreateTime());
-        vo.setUpdateTime(article.getUpdateTime());
+        vo.setCreatedAt(article.getCreatedAt());
+        vo.setUpdatedAt(article.getUpdatedAt());
 
         if (article.getCategoryId() != null) {
             Category category = categoryMapper.selectById(article.getCategoryId());

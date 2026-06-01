@@ -14,9 +14,11 @@ public class CommentVO {
     private Long articleId;
     private Long userId;
     private String username;
+    private String nickname;
+    private String email;
     private String avatar;
     private String content;
-    private LocalDateTime createTime;
+    private LocalDateTime createdAt;
     private Long parentId;
     private List<CommentVO> children;
 }

@@ -15,5 +15,5 @@ public class UserVO {
     private String email;
     private String avatar;
     private String role;
-    private LocalDateTime createTime;
+    private LocalDateTime createdAt;
 }

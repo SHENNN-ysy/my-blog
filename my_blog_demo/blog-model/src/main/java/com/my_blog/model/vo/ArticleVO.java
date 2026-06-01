@@ -25,6 +25,6 @@ public class ArticleVO {
     private Integer isFeatured;
     private Integer status;
     private LocalDateTime publishedAt;
-    private LocalDateTime createTime;
-    private LocalDateTime updateTime;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

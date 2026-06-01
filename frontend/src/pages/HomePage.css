@@ -475,6 +475,186 @@
   line-height: 1.75;
 }
 
+/* ---- Articles ---- */
+.articles {
+  padding: 90px 56px 100px;
+  background: var(--bg);
+  position: relative;
+  z-index: 1;
+}
+
+.articles-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.articles-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  gap: 20px;
+}
+
+.articles-header .section-header {
+  text-align: left;
+  margin-bottom: 0;
+}
+
+.view-all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.view-all-link:hover {
+  color: #00F5CC;
+  gap: 12px;
+}
+
+.articles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.article-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.article-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.article-card:hover {
+  border-color: rgba(0, 217, 181, 0.15);
+  background: var(--surface-2);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 217, 181, 0.06);
+}
+
+.article-card:hover::before { opacity: 1; }
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.article-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.article-category-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.article-card h3 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-hi);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  transition: color 0.2s;
+}
+
+.article-card:hover h3 { color: var(--primary); }
+
+.article-card p {
+  font-size: 0.84rem;
+  color: var(--text-mid);
+  line-height: 1.75;
+  flex-grow: 1;
+}
+
+.article-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.article-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text-mid);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 3px 9px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.article-card:hover .article-tag {
+  border-color: rgba(0, 217, 181, 0.15);
+  color: var(--primary);
+}
+
+.articles-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  padding: 60px 0;
+}
+
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.articles-empty {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
 /* ---- Animations ---- */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(28px); }
@@ -500,6 +680,8 @@
     padding: 110px 32px 80px;
   }
   .hero-right { order: -1; }
+
+  .articles-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -513,6 +695,9 @@
   .features { padding: 60px 20px; }
   .features-grid { grid-template-columns: 1fr; gap: 14px; }
   .feature-card { padding: 26px 20px; }
+  .articles { padding: 60px 20px 80px; }
+  .articles-header { flex-direction: column; align-items: flex-start; }
+  .articles-grid { grid-template-columns: 1fr; gap: 14px; }
   .hero-actions { flex-direction: column; align-items: flex-start; }
 }
 

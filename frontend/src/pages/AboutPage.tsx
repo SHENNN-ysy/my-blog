@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type RefObject } from 'react'
 import '@/pages/AboutPage.css'
 
 const PRINCIPLES = [
@@ -48,7 +48,7 @@ export default function AboutPage() {
   }, [])
 
   return (
-    <section ref={sectionRef as any}>
+    <section ref={sectionRef as RefObject<HTMLElement>}>
       {/* Page header */}
       <div className="page-header">
         <div className="page-eyebrow">

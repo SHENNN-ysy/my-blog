@@ -33,4 +33,9 @@ public class AuthController {
         Long userId = (Long) request.getAttribute("userId");
         return Result.success(authService.getCurrentUser(userId));
     }
+
+    @PostMapping("/logout")
+    public Result<Void> logout() {
+        return Result.success();
+    }
 }

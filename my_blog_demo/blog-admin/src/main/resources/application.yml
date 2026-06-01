@@ -1,10 +1,11 @@
 spring:
   application:
     name: blog-admin
+  profiles:
+    active: local
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/my_blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-    password: ${DB_PASSWORD:}
 
 mybatis-plus:
   configuration:
@@ -16,11 +17,32 @@ mybatis-plus:
 server:
   port: 8080
 
-jwt:
-  secret: ${JWT_SECRET:}
-  expiration: ${JWT_EXPIRATION:}
-
 logging:
   level:
     root: warn
     com.my_blog: info
+  file:
+    name: D:/my_blog/logs/blog-admin.log
+    max-size: 50MB
+    max-history: 7
+
+# ==================== 监控配置 ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics,httpexchanges
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.90, 0.95, 0.99

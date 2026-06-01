@@ -8,7 +8,9 @@ import com.my_blog.model.vo.CommentVO;
 import com.my_blog.my_blog_demo.mapper.CommentMapper;
 import com.my_blog.my_blog_demo.mapper.UserMapper;
 import com.my_blog.my_blog_demo.service.CommentService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
@@ -30,7 +33,7 @@ public class CommentServiceImpl implements CommentService {
                 new LambdaQueryWrapper<Comment>()
                         .eq(Comment::getArticleId, articleId)
                         .eq(Comment::getStatus, 1)
-                        .orderByAsc(Comment::getCreateTime)
+                        .orderByAsc(Comment::getCreatedAt)
         );
         if (all.isEmpty()) {
             return List.of();
@@ -47,20 +50,42 @@ public class CommentServiceImpl implements CommentService {
                 : userMapper.selectBatchIds(userIds).stream()
                         .collect(Collectors.toMap(User::getId, Function.identity()));
 
-        return buildTree(all, userMap);
+        List<CommentVO> result = buildTree(all, userMap);
+        log.info("查询评论列表成功，articleId={}，评论数={}", articleId, all.size());
+        return result;
     }
 
     @Override
     @Transactional
-    public CommentVO submit(CommentDTO dto, Long userId) {
+    public CommentVO submit(CommentDTO dto, Long userId, HttpServletRequest request) {
         Comment comment = new Comment();
         comment.setArticleId(dto.getArticleId());
         comment.setUserId(userId);
+        comment.setNickname(dto.getNickname());
+        comment.setEmail(dto.getEmail());
         comment.setContent(dto.getContent());
         comment.setParentId(dto.getParentId());
+        comment.setIp(getClientIp(request));
+        comment.setUserAgent(request.getHeader("User-Agent"));
         comment.setStatus(1);
         commentMapper.insert(comment);
+        log.info("评论提交成功，commentId={}，articleId={}，userId={}",
+                comment.getId(), dto.getArticleId(), userId);
         return toVO(comment, Map.of());
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 
     private List<CommentVO> buildTree(List<Comment> comments, Map<Long, User> userMap) {
@@ -94,8 +119,10 @@ public class CommentServiceImpl implements CommentService {
         vo.setId(comment.getId());
         vo.setArticleId(comment.getArticleId());
         vo.setUserId(comment.getUserId());
+        vo.setNickname(comment.getNickname());
+        vo.setEmail(comment.getEmail());
         vo.setContent(comment.getContent());
-        vo.setCreateTime(comment.getCreateTime());
+        vo.setCreatedAt(comment.getCreatedAt());
         vo.setParentId(comment.getParentId());
 
         if (comment.getUserId() != null) {

@@ -13,4 +13,8 @@ public class CommentDTO {
     private String content;
 
     private Long parentId;
+
+    private String nickname;
+
+    private String email;
 }

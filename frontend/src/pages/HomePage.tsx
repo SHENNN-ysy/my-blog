@@ -4,10 +4,10 @@ import '@/styles/navbar-footer.css'
 import '@/pages/HomePage.css'
 
 export default function HomePage() {
-  const sectionRef = useRef<HTMLElement>(null)
+  const homePageRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const el = sectionRef.current
+    const el = homePageRef.current
     if (!el) return
     const observer = new IntersectionObserver(
       (entries) => {
@@ -28,13 +28,13 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="home-page">
+    <div className="home-page" ref={homePageRef}>
       {/* Ambient */}
       <div className="hero-deco deco-1" />
       <div className="hero-deco deco-2" />
 
       {/* HERO */}
-      <section className="hero" ref={sectionRef}>
+      <section className="hero">
         <div className="hero-left">
           <div className="hero-eyebrow">
             <span className="eyebrow-pulse" />
@@ -144,6 +144,46 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ARTICLES */}
+      <section className="articles">
+        <div className="articles-inner">
+          <div className="articles-header reveal">
+            <div className="section-header">
+              <span className="section-label">// Latest Posts</span>
+              <h2 className="section-title">最新文章</h2>
+              <p className="section-desc">持续输出优质技术内容，记录成长每一步</p>
+            </div>
+            <Link to="/notes" className="view-all-link">
+              查看全部
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </div>
+
+          <div className="articles-grid">
+            {ARTICLES.map((a) => (
+              <Link key={a.id} to="/experiments" className="article-card reveal">
+                <div className="article-meta">
+                  <span className="article-category">
+                    <span className="article-category-dot" />
+                    {a.category}
+                  </span>
+                  <span>{a.date}</span>
+                </div>
+                <h3>{a.title}</h3>
+                <p>{a.summary}</p>
+                <div className="article-tags">
+                  {a.tags.map((tag) => (
+                    <span key={tag} className="article-tag">{tag}</span>
+                  ))}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
@@ -155,4 +195,31 @@ const FEATURES = [
   { icon: '🔕', title: '无广告打扰', desc: '专注内容本身，没有弹窗、没有推送，让你可以安静地阅读和学习。' },
   { icon: '📋', title: '可复制的方法', desc: '分享的学习和工作方法，都可以直接套用在你自己的项目和生活中。' },
   { icon: '🧭', title: '灵活的节奏', desc: '内容不赶进度，不制造焦虑，你可以按自己的节奏慢慢吸收。' },
+]
+
+const ARTICLES = [
+  {
+    id: 1,
+    category: '前端开发',
+    date: '2026-05-28',
+    title: 'Vue3 组合式 API 最佳实践指南',
+    summary: '深入解析 Composition API 的核心概念与实战技巧，让你的代码更具可维护性与复用性。',
+    tags: ['Vue3', 'Composition API', '前端'],
+  },
+  {
+    id: 2,
+    category: '后端架构',
+    date: '2026-05-20',
+    title: 'Spring Boot 3.x 性能优化实战',
+    summary: '从数据库优化、缓存策略到异步处理，全面提升你的 Spring Boot 应用响应速度。',
+    tags: ['Spring Boot', '性能优化', 'Java'],
+  },
+  {
+    id: 3,
+    category: '数据库',
+    date: '2026-05-12',
+    title: 'MySQL 索引设计与查询优化',
+    summary: '详解 B+Tree 索引原理，分析慢查询原因并给出实战优化方案，让数据库飞起来。',
+    tags: ['MySQL', '索引', '数据库'],
+  },
 ]

@@ -23,16 +23,23 @@ instance.interceptors.request.use((config) => {
 })
 
 instance.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response: AxiosResponse) => {
+    const payload = response.data?.data
+    response.data = payload
+    return response
+  },
   (error) => {
     const status = error.response?.status
-    if (status === 401) {
+    const isLoginRequest = error.config?.url?.includes('/auth/login')
+    if (status === 401 && !isLoginRequest) {
       useAuthStore.getState().clearAuth()
       window.location.href = '/explore'
     }
     const result = error.response?.data
     return Promise.reject(
-      result ? { code: result.code, message: result.message } : error,
+      result
+        ? { code: result.code, message: result.message }
+        : { code: -1, message: error.message || '网络异常，请检查后端服务是否启动' },
     )
   },
 )

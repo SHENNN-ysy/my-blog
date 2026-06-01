@@ -29,6 +29,6 @@ public class CommentController {
             HttpServletRequest request
     ) {
         Long userId = (Long) request.getAttribute("userId");
-        return Result.success(commentService.submit(dto, userId));
+        return Result.success(commentService.submit(dto, userId, request));
     }
 }

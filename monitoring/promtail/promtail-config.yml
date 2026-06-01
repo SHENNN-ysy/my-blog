@@ -1,0 +1,20 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    batchwait: 3s
+    timeout: 30s
+
+scrape_configs:
+  - job_name: blog-api-logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          service: blog-api
+          env: local
+          __path__: /logs/blog-admin*.log

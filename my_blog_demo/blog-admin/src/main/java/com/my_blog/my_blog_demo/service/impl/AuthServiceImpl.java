@@ -11,11 +11,13 @@ import com.my_blog.model.vo.UserVO;
 import com.my_blog.my_blog_demo.mapper.UserMapper;
 import com.my_blog.my_blog_demo.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -29,13 +31,17 @@ public class AuthServiceImpl implements AuthService {
         User user = userMapper.selectOne(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, dto.getUsername())
         );
-        if (user == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+        if (user == null) {
+            throw new BizException(ErrorCode.USERNAME_PASSWORD_ERROR);
+        }
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new BizException(ErrorCode.USERNAME_PASSWORD_ERROR);
         }
         if (user.getStatus() != null && user.getStatus() == 0) {
             throw new BizException(ErrorCode.FORBIDDEN);
         }
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
+        log.info("用户登录成功，username={}，userId={}", dto.getUsername(), user.getId());
         return Map.of(
                 "token", token,
                 "user", toVO(user)
@@ -60,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
         userMapper.insert(user);
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername());
+        log.info("用户注册成功，username={}，userId={}", dto.getUsername(), user.getId());
         return Map.of(
                 "token", token,
                 "user", toVO(user)
@@ -72,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             throw new BizException(ErrorCode.USER_NOT_FOUND);
         }
+        log.info("获取当前用户成功，userId={}，username={}", userId, user.getUsername());
         return toVO(user);
     }
 
@@ -83,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
         vo.setEmail(user.getEmail());
         vo.setAvatar(user.getAvatar());
         vo.setRole(user.getRole());
-        vo.setCreateTime(user.getCreateTime());
+        vo.setCreatedAt(user.getCreatedAt());
         return vo;
     }
 }

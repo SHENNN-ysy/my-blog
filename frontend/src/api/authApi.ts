@@ -8,6 +8,9 @@ export const authApi = {
   register(data: RegisterDTO) {
     return axiosInstance.post<AuthResponse>('/auth/register', data).then((res) => res.data)
   },
+  logout() {
+    return axiosInstance.post('/auth/logout').then((res) => res.data)
+  },
   getCurrentUser() {
     return axiosInstance.get<AuthResponse>('/auth/current').then((res) => res.data)
   },
