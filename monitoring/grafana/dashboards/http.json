@@ -42,7 +42,7 @@
           },
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "reqps"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -55,18 +55,18 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(http_server_requests_seconds_count{application=\"blog-admin\"}[1m]))",
-          "legendFormat": "总 QPS",
+          "expr": "sum(rate(http_server_requests_seconds_count{application=\"blog-admin\", uri!=\"/actuator/prometheus\"}[1m]))",
+          "legendFormat": "总请求速率",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by(status)(rate(http_server_requests_seconds_count{application=\"blog-admin\"}[1m]))",
+          "expr": "sum by(status)(rate(http_server_requests_seconds_count{application=\"blog-admin\", uri!=\"/actuator/prometheus\"}[1m]))",
           "legendFormat": "{{status}}",
           "refId": "B"
         }
       ],
-      "title": "API QPS",
+      "title": "请求速率（每秒）",
       "type": "timeseries"
     },
     {
@@ -115,25 +115,25 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"blog-admin\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=\"blog-admin\", uri!=\"/actuator/prometheus\"}[30s])) by (le))",
           "legendFormat": "P50",
           "refId": "A"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.90, sum(rate(http_server_requests_seconds_bucket{application=\"blog-admin\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.90, sum(rate(http_server_requests_seconds_bucket{application=\"blog-admin\", uri!=\"/actuator/prometheus\"}[30s])) by (le))",
           "legendFormat": "P90",
           "refId": "B"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"blog-admin\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=\"blog-admin\", uri!=\"/actuator/prometheus\"}[30s])) by (le))",
           "legendFormat": "P95",
           "refId": "C"
         },
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"blog-admin\"}[1m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=\"blog-admin\", uri!=\"/actuator/prometheus\"}[30s])) by (le))",
           "legendFormat": "P99",
           "refId": "D"
         }
@@ -161,30 +161,31 @@
           "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "2xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "3xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "4xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "5xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+          { "matcher": { "id": "byName", "options": "200" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": "^2..$" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": "^3..$" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": "^4..$" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": "^5..$" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
         ]
       },
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 10 },
       "id": 5,
       "options": {
-        "displayLabels": ["name", "percent"],
-        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"] },
+        "displayLabels": ["name", "percent", "value"],
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
         "pieType": "pie",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
         "tooltip": { "mode": "multi", "sort": "none" }
       },
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum by (status) (rate(http_server_requests_seconds_count{application=\"blog-admin\"}[5m]))",
+          "expr": "sum by (status) (increase(http_server_requests_seconds_count{application=\"blog-admin\", uri=~\"/api/auth/(login|logout)\"}[5m]))",
           "legendFormat": "{{status}}",
           "refId": "A"
         }
       ],
-      "title": "HTTP 状态码分布",
+      "title": "认证接口状态码分布（最近 5 分钟）",
       "type": "piechart"
     },
     {
@@ -218,7 +219,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(http_server_requests_seconds_count{application=\"blog-admin\", status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"blog-admin\"}[5m]))",
+          "expr": "sum(increase(http_server_requests_seconds_count{application=\"blog-admin\", status=~\"5..\", uri=~\"/api/auth/(login|logout)\"}[5m])) / clamp_min(sum(increase(http_server_requests_seconds_count{application=\"blog-admin\", uri=~\"/api/auth/(login|logout)\"}[5m])), 1)",
           "legendFormat": "5xx 错误率",
           "refId": "A"
         }
@@ -257,7 +258,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(http_server_requests_seconds_count{application=\"blog-admin\", status=~\"4..\"}[5m])) / sum(rate(http_server_requests_seconds_count{application=\"blog-admin\"}[5m]))",
+          "expr": "sum(increase(http_server_requests_seconds_count{application=\"blog-admin\", status=~\"4..\", uri=~\"/api/auth/(login|logout)\"}[5m])) / clamp_min(sum(increase(http_server_requests_seconds_count{application=\"blog-admin\", uri=~\"/api/auth/(login|logout)\"}[5m])), 1)",
           "legendFormat": "4xx 错误率",
           "refId": "A"
         }

@@ -30,10 +30,15 @@ instance.interceptors.response.use(
   },
   (error) => {
     const status = error.response?.status
-    const isLoginRequest = error.config?.url?.includes('/auth/login')
+    const requestUrl = error.config?.url ?? ''
+    const isLoginRequest = requestUrl.includes('/auth/login')
+    const isExploreRoute = window.location.pathname === '/explore'
+
     if (status === 401 && !isLoginRequest) {
       useAuthStore.getState().clearAuth()
-      window.location.href = '/explore'
+      if (!isExploreRoute) {
+        window.location.href = '/explore'
+      }
     }
     const result = error.response?.data
     return Promise.reject(

@@ -2,7 +2,6 @@ package com.my_blog.common.aspect;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -39,7 +38,6 @@ public class RequestTraceAspect {
         ServletRequestAttributes attrs =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attrs != null ? attrs.getRequest() : null;
-        HttpServletResponse response = attrs != null ? attrs.getResponse() : null;
 
         String traceId = buildTraceId(request);
         Object[] args = joinPoint.getArgs();
@@ -50,48 +48,32 @@ public class RequestTraceAspect {
                 request != null ? request.getRequestURI() : "unknown",
                 Arrays.toString(args));
 
-        Object result = null;
-        Throwable thrown = null;
-        int httpStatus = 200;
-        String responseBody = "";
-
         try {
-            result = joinPoint.proceed();
+            Object result = joinPoint.proceed();
+            long cost = System.currentTimeMillis() - start;
+            int httpStatus = extractStatus(result, 200);
+            String responseBody = result != null ? toJson(result) : "";
+
+            log.info("[TRACE] {} | SUCCESS | {} {} | status={} | cost={}ms | body={}",
+                    traceId,
+                    request != null ? request.getMethod() : "UNKNOWN",
+                    request != null ? request.getRequestURI() : "unknown",
+                    httpStatus,
+                    cost,
+                    responseBody);
+
+            return result;
         } catch (Throwable t) {
-            thrown = t;
-            httpStatus = 500;
-        }
-
-        long cost = System.currentTimeMillis() - start;
-
-        if (thrown != null) {
-            responseBody = buildErrorBody(thrown);
-            log.error("[TRACE] {} | ERROR   | {} {} | status=500 | cost={}ms | ex={} | msg={}",
+            long cost = System.currentTimeMillis() - start;
+            log.error("[TRACE] {} | ERROR   | {} {} | cost={}ms | ex={} | msg={}",
                     traceId,
                     request != null ? request.getMethod() : "UNKNOWN",
                     request != null ? request.getRequestURI() : "unknown",
                     cost,
-                    thrown.getClass().getSimpleName(),
-                    thrown.getMessage());
-            throw thrown;
+                    t.getClass().getSimpleName(),
+                    t.getMessage());
+            throw t;
         }
-
-        if (result != null) {
-            responseBody = toJson(result);
-            httpStatus = extractStatus(result, 200);
-        }
-
-        writeJsonResponse(response, httpStatus, responseBody);
-
-        log.info("[TRACE] {} | SUCCESS | {} {} | status={} | cost={}ms | body={}",
-                traceId,
-                request != null ? request.getMethod() : "UNKNOWN",
-                request != null ? request.getRequestURI() : "unknown",
-                httpStatus,
-                cost,
-                responseBody);
-
-        return null;
     }
 
     private String toJson(Object obj) {
@@ -107,30 +89,6 @@ public class RequestTraceAspect {
             return re.getStatusCode().value();
         }
         return fallback;
-    }
-
-    private String buildErrorBody(Throwable t) {
-        try {
-            return objectMapper.writeValueAsString(
-                    java.util.Map.of("code", 500, "message", t.getMessage())
-            );
-        } catch (Exception e) {
-            return "{\"code\":500,\"message\":\"" + t.getMessage() + "\"}";
-        }
-    }
-
-    private void writeJsonResponse(HttpServletResponse response, int status, String body) {
-        if (response == null || response.isCommitted()) {
-            return;
-        }
-        try {
-            byte[] bytes = body.getBytes(java.nio.charset.StandardCharsets.UTF_8);
-            response.setStatus(status);
-            response.setContentType("application/json;charset=UTF-8");
-            response.setContentLength(bytes.length);
-            response.getOutputStream().write(bytes);
-            response.getOutputStream().flush();
-        } catch (Exception ignored) {}
     }
 
     private String buildTraceId(HttpServletRequest request) {

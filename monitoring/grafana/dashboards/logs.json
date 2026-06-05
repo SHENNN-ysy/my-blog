@@ -54,7 +54,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{service=\"blog-api\"} |= ``",
+          "expr": "{service=\"my-blog-demo\"} |= ``",
           "queryType": "range",
           "refId": "A"
         }
@@ -94,18 +94,18 @@
         "displayLabels": ["name", "value"],
         "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"] },
         "pieType": "pie",
-        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "tooltip": { "mode": "multi", "sort": "none" }
       },
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum by(level) (count_over_time({service=\"blog-api\"} | json [5m]))",
+          "expr": "sum by (level) (count_over_time({service=\"my-blog-demo\", level=~\"INFO|WARN|ERROR|DEBUG|UNKNOWN\"}[5m]))",
           "legendFormat": "{{level}}",
           "refId": "A"
         }
       ],
-      "title": "日志级别分布（最近 5 分钟）",
+      "title": "最近 5 分钟日志总量",
       "type": "piechart"
     },
     {
@@ -151,12 +151,12 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum by(level) (rate({service=\"blog-api\"} | json [1m]))",
+          "expr": "sum by (level) (rate({service=\"my-blog-demo\", level=~\"INFO|WARN|ERROR|DEBUG|UNKNOWN\"}[1m]))",
           "legendFormat": "{{level}}",
           "refId": "A"
         }
       ],
-      "title": "日志产生速率（条/秒）",
+      "title": "日志产生速率（总条/秒）",
       "type": "timeseries"
     }
   ],
