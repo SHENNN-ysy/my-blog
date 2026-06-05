@@ -102,4 +102,4 @@ CREATE TABLE `blog_comment` (
 -- 密码: admin123 (BCrypt加密)
 -- ----------------------------
 INSERT INTO `sys_user` (`username`, `password`, `nickname`, `email`, `role`) VALUES
-('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iAt6Z5EH', '管理员', 'admin@example.com', 'admin');
+('admin', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '管理员', 'admin@example.com', 'admin');

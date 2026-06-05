@@ -1,10 +1,12 @@
 package com.my_blog.common.exception;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.my_blog.common.enums.ErrorCode;
 import com.my_blog.model.vo.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -49,6 +51,18 @@ public class GlobalExceptionHandler {
         FieldError fieldError = e.getBindingResult().getFieldError();
         String message = fieldError != null ? fieldError.getDefaultMessage() : "参数绑定失败";
         return Result.error(ErrorCode.PARAM_INVALID.getCode(), message);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Result<Void> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof JsonParseException) {
+            log.warn("Invalid JSON request body: {}", cause.getMessage());
+            return Result.error(ErrorCode.PARAM_INVALID.getCode(), "请求体不是合法的 JSON");
+        }
+        log.warn("Unreadable request body", e);
+        return Result.error(ErrorCode.PARAM_INVALID.getCode(), "请求体格式错误");
     }
 
     @ExceptionHandler(Exception.class)

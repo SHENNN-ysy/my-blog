@@ -14,8 +14,10 @@ Thumbs.db
 # Build output
 # ===================
 target/
+**/target/
 build/
 dist/
+**/dist/
 *.class
 *.jar
 *.war
@@ -25,12 +27,14 @@ dist/
 # Node
 # ===================
 node_modules/
+**/node_modules/
 frontend/node_modules/
 frontend-demo/node_modules/
 
 # ===================
 # Sensitive config
 # ===================
+.env
 # Per-module sensitive configs (local overrides)
 my_blog_demo/blog-admin/src/main/resources/application-local.yml
 

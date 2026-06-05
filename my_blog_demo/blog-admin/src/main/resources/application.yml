@@ -21,10 +21,6 @@ logging:
   level:
     root: warn
     com.my_blog: info
-  file:
-    name: D:/my_blog/logs/blog-admin.log
-    max-size: 50MB
-    max-history: 7
 
 # ==================== 监控配置 ====================
 management:

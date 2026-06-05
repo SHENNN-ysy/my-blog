@@ -3,7 +3,7 @@ services:
   my-blog-demo:
     build:
       context: ./my_blog_demo
-      dockerfile: blog-admin/Dockerfile
+      dockerfile: Dockerfile
     container_name: my-blog-demo
     ports:
       - "8080:8080"
@@ -11,7 +11,9 @@ services:
       - SPRING_PROFILES_ACTIVE=prod
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/my_blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
       - TZ=Asia/Shanghai
     depends_on:
       mysql:
@@ -25,13 +27,14 @@ services:
     image: mysql:8.0
     container_name: blog-mysql
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=my_blog
       - TZ=Asia/Shanghai
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./my_blog_demo/dev-ops/sql/create_table.sql:/docker-entrypoint-initdb.d/01-create_table.sql:ro
     networks:
       - blog-network
     healthcheck:
@@ -44,8 +47,8 @@ services:
   # ==================== 博客前台 ====================
   blog-frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: blog-frontend
     ports:
       - "80:80"
