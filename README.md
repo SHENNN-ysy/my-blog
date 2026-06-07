@@ -1,4 +1,4 @@
-# 个人学习实验室 (MyStudyLab)  -尚未完成，开发中
+# 个人学习实验室 (MyStudyLab) — 开发中
 
 前后端分离博客项目，前端基于 React + Vite + TypeScript，后端基于 Spring Boot 3 + MyBatis-Plus，支持 Docker 一键部署与 PLG 监控栈。
 
@@ -9,19 +9,21 @@ my_blog/
 ├── frontend/                   # React 前端（Vite + React + TypeScript）
 │   ├── src/
 │   │   ├── api/               # Axios 实例 + API 接口封装
-│   │   ├── components/         # NavBar、Footer、ProtectedRoute
-│   │   ├── pages/              # 页面组件（首页/探索/关于等）
-│   │   ├── stores/             # Zustand 状态管理
-│   │   ├── hooks/              # 自定义 Hooks
-│   │   ├── types/              # TypeScript 类型定义
-│   │   └── styles/             # 全局样式
-│   └── package.json
+│   │   ├── components/        # NavBar、Footer、ProtectedRoute
+│   │   ├── pages/             # 页面组件（首页/探索/关于等）
+│   │   ├── stores/            # Zustand 状态管理
+│   │   ├── hooks/             # 自定义 Hooks
+│   │   ├── types/             # TypeScript 类型定义
+│   │   └── styles/            # 全局样式
+│   ├── nginx/
+│   │   └── nginx.conf         # Nginx 反向代理配置
+│   └── Dockerfile
 ├── backstage/                 # React 管理后台（Vite + React + TypeScript）
 │   ├── src/
-│   │   ├── api/               # 监控 API
-│   │   ├── layouts/            # AdminLayout 布局
-│   │   ├── views/admin/        # 监控大盘页面
-│   │   └── stores/            # Zustand 状态管理
+│   │   ├── api/              # 监控 API
+│   │   ├── layouts/          # AdminLayout 布局
+│   │   ├── views/admin/      # 监控大盘页面
+│   │   └── stores/           # Zustand 状态管理
 │   └── Dockerfile
 ├── my_blog_demo/              # Spring Boot 后端（Maven 多模块）
 │   ├── pom.xml
@@ -31,17 +33,17 @@ my_blog/
 │   └── blog-admin/           # Spring Boot 主模块
 │       └── src/main/java/com/my_blog/my_blog_demo/
 │           ├── controller/   # REST 接口层
-│           ├── service/      # Service 接口层 + 实现层
-│           └── mapper/       # MyBatis-Plus Mapper 层
+│           ├── service/     # Service 接口层 + 实现层
+│           └── mapper/      # MyBatis-Plus Mapper 层
 ├── monitoring/               # PLG 监控栈配置（Prometheus + Loki + Grafana）
 │   ├── prometheus/
 │   ├── loki/
 │   ├── promtail/
 │   └── grafana/              # 数据源 + 仪表盘自动配置
-├── nginx/                    # Nginx 反向代理配置
 ├── dev-ops/                  # 数据库建表脚本
 ├── docker-compose.yml        # 全套容器编排
-└── deploy.sh                # 一键部署管理脚本
+├── deploy.sh                 # 一键部署管理脚本
+└── Jenkinsfile              # Jenkins CI/CD 流水线
 ```
 
 ## 技术栈
@@ -60,13 +62,14 @@ my_blog/
 | 日志 | Lombok + Hutool |
 | 容器化 | Docker + Docker Compose |
 | 监控 | Prometheus + Loki + Grafana + node-exporter |
+| CI/CD | Jenkins + GitHub Webhook |
 
 ## 快速启动
 
 ### Docker 一键部署（推荐）
 
 ```bash
-./deploy.sh dev      # 启动核心服务（MySQL + Redis + 后端 API）
+./deploy.sh dev      # 启动核心服务（MySQL + 后端 API）
 ./deploy.sh prod     # 启动全套服务（核心 + Nginx 前台 + 管理后台）
 ./deploy.sh monitor  # 启动监控栈（Prometheus + Loki + Grafana + node-exporter）
 ./deploy.sh logs     # 查看所有容器日志
@@ -130,12 +133,13 @@ mysql -u root -p < my_blog_demo/dev-ops/sql/create_table.sql
 Internet
    │
    ▼
-Nginx (:80)
-   ├── /           → 博客前台静态资源
-   ├── /admin/     → 管理后台
-   ├── /api/**     → 后端 API (:8080)
-   ├── /grafana/   → Grafana (:3000)
-   └── /prometheus/ → Prometheus (:9090)
+Nginx (:80)  [blog-frontend 容器]
+   ├── /            → 博客前台静态资源
+   ├── /admin/      → 管理后台（blog-backstage 容器）
+   ├── /api/**      → 后端 API (:8080)
+   ├── /grafana/    → Grafana (:3000)
+   ├── /prometheus/ → Prometheus (:9090)
+   └── /loki/       → Loki (:3100)
 
 ┌──────────────────────────────────────────────┐
 │           PLG 监控栈                          │
@@ -169,6 +173,26 @@ Nginx (:80)
 - **Service 实现层** — `service/impl/XxxServiceImpl.java`，承载全部业务逻辑
 - **Mapper 层** — MyBatis-Plus Mapper，操作数据库
 
+## CI/CD
+
+项目使用 Jenkins + GitHub Webhook 实现自动化构建部署：
+
+1. **GitHub Webhook 配置**：在 GitHub 仓库 Settings → Webhooks 中添加
+   - Payload URL: `https://你的域名/github-webhook/`
+   - Content type: `application/json`
+   - Secret: 与 Jenkins 配置保持一致
+   - Events: Just the push event
+
+2. **Jenkins 配置**：安装 GitHub Plugin，创建 Pipeline 项目
+   - 源码管理选择 Git，填入仓库地址
+   - 构建触发器选择 "GitHub hook trigger for GITScm polling"
+   - Pipeline 脚本使用项目根目录 `Jenkinsfile`
+
+3. **Jenkinsfile 说明**：
+   - 推送到 master/main 分支触发构建
+   - 自动构建前端、管理后台 Docker 镜像
+   - 自动重新部署相关容器
+
 ## 监控仪表盘
 
 | 仪表盘 | 说明 |
@@ -185,3 +209,4 @@ Nginx (:80)
 - 敏感配置（数据库密码、JWT 密钥）存于 `application-local.yml`，已加入 `.gitignore`
 - `blog-model` 无外部依赖，可独立编译
 - `blog-common` 依赖 `blog-model`，被 `blog-admin` 依赖
+- Nginx 配置通过 `frontend/nginx/nginx.conf` 维护，管理后台共用同一套配置
