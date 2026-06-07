@@ -1,212 +1,162 @@
-# 个人学习实验室 (MyStudyLab) — 开发中
+# My Blog
 
-前后端分离博客项目，前端基于 React + Vite + TypeScript，后端基于 Spring Boot 3 + MyBatis-Plus，支持 Docker 一键部署与 PLG 监控栈。
+基于 Spring Boot + Vue 3 的全栈博客系统，支持文章管理、评论、用户认证，并配备 Prometheus + Loki + Grafana 监控栈。
 
-## 项目结构
+## 访问地址
 
-```
-my_blog/
-├── frontend/                   # React 前端（Vite + React + TypeScript）
-│   ├── src/
-│   │   ├── api/               # Axios 实例 + API 接口封装
-│   │   ├── components/        # NavBar、Footer、ProtectedRoute
-│   │   ├── pages/             # 页面组件（首页/探索/关于等）
-│   │   ├── stores/            # Zustand 状态管理
-│   │   ├── hooks/             # 自定义 Hooks
-│   │   ├── types/             # TypeScript 类型定义
-│   │   └── styles/            # 全局样式
-│   ├── nginx/
-│   │   └── nginx.conf         # Nginx 反向代理配置
-│   └── Dockerfile
-├── backstage/                 # React 管理后台（Vite + React + TypeScript）
-│   ├── src/
-│   │   ├── api/              # 监控 API
-│   │   ├── layouts/          # AdminLayout 布局
-│   │   ├── views/admin/      # 监控大盘页面
-│   │   └── stores/           # Zustand 状态管理
-│   └── Dockerfile
-├── my_blog_demo/              # Spring Boot 后端（Maven 多模块）
-│   ├── pom.xml
-│   ├── blog-model/           # Entity / DTO / VO
-│   ├── blog-common/          # Result / GlobalExceptionHandler / AOP 切面
-│   │   └── aspect/           # DbWriteTraceAspect、RequestTraceAspect
-│   └── blog-admin/           # Spring Boot 主模块
-│       └── src/main/java/com/my_blog/my_blog_demo/
-│           ├── controller/   # REST 接口层
-│           ├── service/     # Service 接口层 + 实现层
-│           └── mapper/      # MyBatis-Plus Mapper 层
-├── monitoring/               # PLG 监控栈配置（Prometheus + Loki + Grafana）
-│   ├── prometheus/
-│   ├── loki/
-│   ├── promtail/
-│   └── grafana/              # 数据源 + 仪表盘自动配置
-├── dev-ops/                  # 数据库建表脚本
-├── docker-compose.yml        # 全套容器编排
-├── deploy.sh                 # 一键部署管理脚本
-└── Jenkinsfile              # Jenkins CI/CD 流水线
-```
+| 服务 | 地址 |
+|------|------|
+| 博客前台 | http://localhost |
+| 管理后台 | http://localhost:5173/admin |
+| 后端 API | http://localhost:8080 |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 |
+| Jenkins | http://localhost:8888 |
 
 ## 技术栈
 
 | 层级 | 技术 |
-|---|---|
-| 前端框架 | React 18 + TypeScript + Vite |
-| 路由 | React Router v6 |
-| 状态管理 | Zustand |
-| HTTP 客户端 | Axios（带拦截器） |
-| 管理后台 | React + Vite（独立部署） |
-| 后端 | Spring Boot 3 + Maven 多模块 |
-| ORM | MyBatis-Plus 4.0 |
-| 数据库 | MySQL 8 |
-| 认证 | JWT（jjwt 0.12） |
-| 日志 | Lombok + Hutool |
-| 容器化 | Docker + Docker Compose |
-| 监控 | Prometheus + Loki + Grafana + node-exporter |
-| CI/CD | Jenkins + GitHub Webhook |
+|------|------|
+| 前台 | Vue 3 + Vite + TypeScript |
+| 管理后台 | Vue 3 + Backstage |
+| 后端 | Spring Boot 3 + MyBatis + MySQL 8 |
+| 认证 | JWT |
+| 监控 | Prometheus + Loki + Grafana (PLG 栈) |
+| CI/CD | Jenkins |
+| 容器 | Docker + Docker Compose |
+| Webhook | GitHub Webhooks → Jenkins 自动触发部署 |
 
-## 快速启动
+## 快速部署
 
-### Docker 一键部署（推荐）
+### 1. 配置环境变量
 
 ```bash
-./deploy.sh dev      # 启动核心服务（MySQL + 后端 API）
-./deploy.sh prod     # 启动全套服务（核心 + Nginx 前台 + 管理后台）
-./deploy.sh monitor  # 启动监控栈（Prometheus + Loki + Grafana + node-exporter）
-./deploy.sh logs     # 查看所有容器日志
-./deploy.sh stop     # 停止所有服务
-./deploy.sh restart  # 重启所有服务
-./deploy.sh status   # 查看容器运行状态
+cp .env.example .env
+# 编辑 .env，填入以下关键变量：
+#   MYSQL_ROOT_PASSWORD=<你的数据库密码>
+#   JWT_SECRET=<至少 32 字符的 JWT 签名密钥>
 ```
 
-### 前端（开发模式）
+### 2. 启动服务
+
+```bash
+# 启动全套服务（前端 + 后端 + 数据库 + 监控）
+docker-compose up -d
+
+# 仅启动核心服务（不含监控）
+docker-compose up -d --scale grafana=0 --scale prometheus=0 --scale loki=0 --scale promtail=0 --scale node-exporter=0
+```
+
+### 3. 初始化数据库
+
+```bash
+# 首次启动后等待 MySQL 初始化（约 10 秒）
+docker-compose logs -f my-blog-demo
+# 看到 "Started BlogAdminApplication" 后即可访问
+```
+
+## 自动化部署（CI/CD）
+
+### GitHub Webhook → Jenkins 自动部署流程
+
+```
+GitHub Push
+    │
+    ▼
+GitHub Webhook ──POST──► Jenkins (/github-webhook/)
+    │
+    ▼
+Jenkins Pipeline:
+    Checkout ──► Build Backend ──► Build Frontend ──► Build Backstage
+        │
+        ▼
+    Docker Build ──► Docker Up ──► Health Check
+```
+
+### Jenkins 配置步骤
+
+1. 打开 Jenkins：`http://<你的公网地址>:8888`
+2. 创建 Pipeline 项目，粘贴 `Jenkinsfile` 内容
+3. 在项目配置中勾选：**GitHub hook trigger for GITScm polling**
+4. 在 GitHub 仓库 `Settings → Webhooks` 添加 webhook：
+   - Payload URL: `http://<你的公网地址>:8889/github-webhook/`
+   - Content type: `application/json`
+   - Events: **Push events**
+5. 推送代码到 GitHub，Jenkins 会自动触发构建和部署
+
+## 目录结构
+
+```
+my_blog/
+├── my_blog_demo/           # Spring Boot 后端（多模块 Maven 项目）
+│   ├── blog-admin/         # API 服务
+│   ├── blog-common/        # 公共组件（AOP、异常、工具类）
+│   ├── blog-model/         # 数据模型（Entity、DTO、VO）
+│   └── dev-ops/sql/        # 建表 SQL
+├── frontend/               # Vue 3 博客前台
+├── backstage/              # Vue 3 管理后台 + Dockerfile
+├── nginx/                  # Nginx 配置
+│   └── nginx.conf
+├── monitoring/             # PLG 监控栈配置
+│   ├── prometheus/
+│   ├── loki/
+│   ├── promtail/
+│   └── grafana/
+├── docker-compose.yml      # 容器编排
+├── Jenkinsfile             # Jenkins Pipeline 配置
+├── deploy.sh               # 一键部署脚本
+└── .env                    # 环境变量（不上传 GitHub）
+```
+
+## API 接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/auth/login | 用户登录 |
+| POST | /api/auth/register | 用户注册 |
+| GET | /api/articles | 文章列表 |
+| POST | /api/articles | 发布文章（需认证） |
+| GET | /api/articles/{id} | 文章详情 |
+| POST | /api/comments | 发表评论 |
+| GET | /api/categories | 分类列表 |
+
+## 管理后台
+
+访问 `http://localhost:5173/admin`，使用管理员账号登录后可管理文章、评论、分类。
+
+默认管理员（首次启动自动创建）：
+- 用户名：`admin`
+- 密码：`admin123`
+
+## 监控
+
+访问 `http://localhost:3000`，使用 `admin / admin` 登录 Grafana 查看：
+
+- **Blog - JVM 监控**：堆内存、线程数、GC 频率/耗时
+- **Blog - HTTP 请求**：QPS、延迟 P50/P90/P95/P99、状态码分布
+- **Blog - 主机监控**：CPU、内存、磁盘使用率
+- **Blog - 日志监控**：Loki 实时日志搜索、级别分布
+
+## 开发
+
+### 后端启动
+
+```bash
+cd my_blog_demo
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+### 前端启动
 
 ```bash
 cd frontend
 npm install
-npm run dev          # http://localhost:5173
-npm run build        # 生产构建
+npm run dev
 ```
 
-### 管理后台（开发模式）
-
-```bash
-cd backstage
-npm install
-npm run dev          # http://localhost:5174
-```
-
-### 后端（本地开发）
+### 运行测试
 
 ```bash
 cd my_blog_demo
-./mvnw clean install -DskipTests
-cd blog-admin
-./mvnw spring-boot:run
-# 或直接运行 jar 包
-java -jar blog-admin/target/blog-admin-0.0.1-SNAPSHOT.jar
+mvn test
 ```
-
-后端地址：`http://localhost:8080`
-
-### 初始化数据库
-
-```bash
-mysql -u root -p < my_blog_demo/dev-ops/sql/create_table.sql
-```
-
-## 访问地址
-
-| 服务 | 地址 | 备注 |
-|---|---|---|
-| 博客前台 | http://localhost | |
-| 管理后台 | http://localhost:5173 | |
-| 后端 API | http://localhost:8080 | |
-| 健康检查 | http://localhost:8080/actuator/health | |
-| Prometheus | http://localhost:9090 | |
-| Grafana | http://localhost:3000/grafana | admin / admin |
-| Loki | http://localhost:3100 | |
-| node-exporter | http://localhost:9100 | |
-
-## 架构概览
-
-```
-Internet
-   │
-   ▼
-Nginx (:80)  [blog-frontend 容器]
-   ├── /            → 博客前台静态资源
-   ├── /admin/      → 管理后台（blog-backstage 容器）
-   ├── /api/**      → 后端 API (:8080)
-   ├── /grafana/    → Grafana (:3000)
-   ├── /prometheus/ → Prometheus (:9090)
-   └── /loki/       → Loki (:3100)
-
-┌──────────────────────────────────────────────┐
-│           PLG 监控栈                          │
-│  Grafana (:3000)                             │
-│       ├── Prometheus (:9090) → JVM/HTTP 指标  │
-│       │                 → node-exporter (:9100)│
-│       └── Loki (:3100) ← Promtail ← 应用日志  │
-└──────────────────────────────────────────────┘
-```
-
-## API 列表
-
-| 接口 | 方法 | 路径 | 说明 |
-|---|---|---|---|
-| 登录 | POST | `/api/auth/login` | 返回 JWT Token |
-| 注册 | POST | `/api/auth/register` | 创建用户账号 |
-| 当前用户 | GET | `/api/auth/current` | 需登录 |
-| 文章列表 | GET | `/api/articles` | 支持 category/tag 筛选 + 分页 |
-| 文章详情 | GET | `/api/articles/:id` | 浏览量 +1 |
-| 分类列表 | GET | `/api/categories` | 公开 |
-| 标签列表 | GET | `/api/tags` | 公开 |
-| 评论列表 | GET | `/api/comments/article/:id` | 公开 |
-| 提交评论 | POST | `/api/comments` | 需登录 |
-
-## 后端分层说明
-
-采用标准三层架构 + 接口-实现分离模式：
-
-- **Controller** — 接收 HTTP 请求，参数校验，调用 Service 层
-- **Service 接口层** — `service/XxxService.java`，定义业务方法抽象契约
-- **Service 实现层** — `service/impl/XxxServiceImpl.java`，承载全部业务逻辑
-- **Mapper 层** — MyBatis-Plus Mapper，操作数据库
-
-## CI/CD
-
-项目使用 Jenkins + GitHub Webhook 实现自动化构建部署：
-
-1. **GitHub Webhook 配置**：在 GitHub 仓库 Settings → Webhooks 中添加
-   - Payload URL: `https://你的域名/github-webhook/`
-   - Content type: `application/json`
-   - Secret: 与 Jenkins 配置保持一致
-   - Events: Just the push event
-
-2. **Jenkins 配置**：安装 GitHub Plugin，创建 Pipeline 项目
-   - 源码管理选择 Git，填入仓库地址
-   - 构建触发器选择 "GitHub hook trigger for GITScm polling"
-   - Pipeline 脚本使用项目根目录 `Jenkinsfile`
-
-3. **Jenkinsfile 说明**：
-   - 推送到 master/main 分支触发构建
-   - 自动构建前端、管理后台 Docker 镜像
-   - 自动重新部署相关容器
-
-## 监控仪表盘
-
-| 仪表盘 | 说明 |
-|---|---|
-| Blog - JVM 监控 | 堆内存、线程数、GC 频率/耗时 |
-| Blog - HTTP 请求 | QPS、延迟 P50/P90/P95/P99、状态码分布 |
-| Blog - 主机监控 | CPU、内存、磁盘使用率 |
-| Blog - 日志监控 | Loki 实时日志搜索、级别分布 |
-
-## 开发说明
-
-- 前端通过 Vite 代理 `/api` 请求到后端 `localhost:8080`，无需配置 CORS
-- JWT Token 有效期 24 小时，存于 `localStorage`
-- 敏感配置（数据库密码、JWT 密钥）存于 `application-local.yml`，已加入 `.gitignore`
-- `blog-model` 无外部依赖，可独立编译
-- `blog-common` 依赖 `blog-model`，被 `blog-admin` 依赖
-- Nginx 配置通过 `frontend/nginx/nginx.conf` 维护，管理后台共用同一套配置

@@ -2,7 +2,7 @@
 set -e
 
 # ==================== 配置 ====================
-PROJECT_DIR="/data/my-blog"
+PROJECT_DIR="/opt/my-blog"
 
 # 服务名称（与 docker-compose.yml 中的 container_name 一致）
 BACKEND_NAME="my-blog-demo"
